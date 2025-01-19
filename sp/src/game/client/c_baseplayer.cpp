@@ -78,6 +78,7 @@ extern ConVar mp_forcecamera; // in gamevars_shared.h
 #define FLASHLIGHT_DISTANCE		1000
 #define MAX_VGUI_INPUT_MODE_SPEED 30
 #define MAX_VGUI_INPUT_MODE_SPEED_SQ (MAX_VGUI_INPUT_MODE_SPEED*MAX_VGUI_INPUT_MODE_SPEED)
+#define CHASE_CAM_DISTANCE		96.0f
 
 static Vector WALL_MIN(-WALL_OFFSET,-WALL_OFFSET,-WALL_OFFSET);
 static Vector WALL_MAX(WALL_OFFSET,WALL_OFFSET,WALL_OFFSET);
@@ -994,6 +995,76 @@ void C_BasePlayer::ReceiveMessage( int classID, bf_read &msg )
 		case PLAY_PLAYER_JINGLE:
 			PlayPlayerJingle();
 			break;
+	}
+}
+
+void C_BasePlayer::CalcThirdPersonDeathView(Vector& eyeOrigin, QAngle& eyeAngles, float& fov)
+{
+	if (m_lifeState != LIFE_ALIVE)
+	{
+		C_BasePlayer* pPlayer = C_BasePlayer::GetLocalPlayer();
+
+		if (!pPlayer)
+			return;
+
+		// Keep a copy of the actual player model.
+		pPlayer->SnatchModelInstance(this);
+
+		// Creates the ragdoll asset from the player's model.
+		m_nRenderFX = kRenderFxRagdoll;
+
+		matrix3x4_t boneDelta0[MAXSTUDIOBONES];
+		matrix3x4_t boneDelta1[MAXSTUDIOBONES];
+		matrix3x4_t currentBones[MAXSTUDIOBONES];
+		const float boneDt = 0.05f;
+
+		if (pPlayer && !pPlayer->IsDormant())
+		{
+			pPlayer->GetRagdollInitBoneArrays(boneDelta0, boneDelta1, currentBones, boneDt);
+		}
+		else
+		{
+			GetRagdollInitBoneArrays(boneDelta0, boneDelta1, currentBones, boneDt);
+		}
+
+		// Sets the ragdoll.
+		InitAsClientRagdoll(boneDelta0, boneDelta1, currentBones, boneDt);
+
+		// Calculate origin of the ragdoll.
+		Vector origin = EyePosition();
+
+		IRagdoll* pRagdoll = GetRepresentativeRagdoll();
+
+		if (pRagdoll)
+		{
+			origin = pRagdoll->GetRagdollOrigin();
+			origin.z += VEC_DEAD_VIEWHEIGHT.z; // look over ragdoll, not through
+		}
+
+		eyeOrigin = origin;
+
+		Vector vForward;
+		AngleVectors(eyeAngles, &vForward);
+
+		VectorNormalize(vForward);
+		VectorMA(origin, -CHASE_CAM_DISTANCE, vForward, eyeOrigin);
+
+		Vector WALL_MIN(-WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET);
+		Vector WALL_MAX(WALL_OFFSET, WALL_OFFSET, WALL_OFFSET);
+
+		trace_t trace; // clip against world
+		C_BaseEntity::PushEnableAbsRecomputations(false); // HACK don't recompute positions while doing RayTrace
+		UTIL_TraceHull(origin, eyeOrigin, WALL_MIN, WALL_MAX, MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &trace);
+		C_BaseEntity::PopEnableAbsRecomputations();
+
+		if (trace.fraction < 1.0)
+		{
+			eyeOrigin = trace.endpos;
+		}
+
+		fov = GetFOV();
+
+		return;
 	}
 }
 

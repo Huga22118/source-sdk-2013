@@ -51,6 +51,10 @@
 #include "sixense/in_sixense.h"
 #endif
 
+#ifdef CLIENT_DLL
+#include "input.h"
+#endif
+
 // NVNT haptic utils
 #include "haptics/haptic_utils.h"
 // memdbgon must be the last include file in a .cpp file!!!
@@ -1589,10 +1593,17 @@ void CBasePlayer::CalcView( Vector &eyeOrigin, QAngle &eyeAngles, float &zNear, 
 		{
 			CalcObserverView( eyeOrigin, eyeAngles, fov );
 		}
+#ifdef CLIENT_DLL
+		else if (!this->IsAlive() && ::input->CAM_IsThirdPerson())
+		{
+			CalcThirdPersonDeathView(eyeOrigin, eyeAngles, fov);
+		}
+#endif
 		else
 		{
 			CalcPlayerView( eyeOrigin, eyeAngles, fov );
 		}
+
 	}
 	else
 	{

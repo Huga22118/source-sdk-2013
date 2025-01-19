@@ -67,13 +67,14 @@ public:
 private:
 	int		m_bitsDeviceID;	// tells what the device is. DEVICE_SPRINT, DEVICE_FLASHLIGHT, etc. BITMASK!!!!!
 	float	m_flDrainRate;	// how quickly does this device deplete suit power? ( percent per second )
-
+	
 public:
 	int		GetDeviceID( void ) const { return m_bitsDeviceID; }
 	float	GetDeviceDrainRate( void ) const
 	{	
-		if( g_pGameRules->GetSkillLevel() == SKILL_EASY && hl2_episodic.GetBool() && !(GetDeviceID()&bits_SUIT_DEVICE_SPRINT) )
-			return m_flDrainRate * 0.5f;
+		/*if (g_pGameRules->GetSkillLevel() == SKILL_EASY && hl2_episodic.GetBool() && !(GetDeviceID() & bits_SUIT_DEVICE_SPRINT))*/
+		if (g_pGameRules->GetSkillLevel() == SKILL_EASY && hl2_episodic.GetBool())
+		return m_flDrainRate * 0.5f;
 		else
 			return m_flDrainRate; 
 	}
@@ -261,7 +262,7 @@ public:
 	void				InputTurnFlashlightOn( inputdata_t &inputdata );
 	void				InputTurnFlashlightOff( inputdata_t &inputdata );
 #endif
-
+	void                Pain(int nDmgTypeBits);
 	const impactdamagetable_t &GetPhysicsImpactDamageTable();
 	virtual int			OnTakeDamage( const CTakeDamageInfo &info );
 	virtual int			OnTakeDamage_Alive( const CTakeDamageInfo &info );
@@ -388,6 +389,8 @@ private:
 	bool				m_bSprintEnabled;		// Used to disable sprint temporarily
 	bool				m_bIsAutoSprinting;		// A proxy for holding down the sprint key.
 	float				m_fAutoSprintMinTime;	// Minimum time to maintain autosprint regardless of player speed. 
+
+	QAngle m_angEyeAngles;
 
 	CNetworkVar( bool, m_fIsSprinting );
 	CNetworkVarForDerived( bool, m_fIsWalking );

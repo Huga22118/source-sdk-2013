@@ -565,6 +565,8 @@ public:
 
 public:
 	// returns the last body region that took damage
+	//m_LastHitGroup moved to public so that other classes can access it
+	int					m_LastHitGroup;
 	int	LastHitGroup() const				{ return m_LastHitGroup; }
 #ifndef MAPBASE // For filter_damage_transfer
 protected:
@@ -620,7 +622,7 @@ private:
 	static Relationship_t**		m_DefaultRelationship;
 
 	// attack/damage
-	int					m_LastHitGroup;			// the last body region that took damage
+			// the last body region that took damage
 	float				m_flDamageAccumulator;	// so very small amounts of damage do not get lost.
 	int					m_iDamageCount;			// # of times NPC has been damaged.  used for tracking 1-shot kills.
 	

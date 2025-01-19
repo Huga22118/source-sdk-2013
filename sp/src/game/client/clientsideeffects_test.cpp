@@ -219,7 +219,8 @@ void FX_TracerSound( const Vector &start, const Vector &end, int iTracerType )
 	{
 	case TRACER_TYPE_DEFAULT:
 		{
-			pszSoundName = "Bullets.DefaultNearmiss";
+			/* temporary disabled for damage sound testing since the nearmiss sound is a little bit loud
+			pszSoundName = "Bullets.DefaultNearmiss";*/
 			flWhizDist = 24;
 
 			Ray_t bullet, listener;
@@ -237,15 +238,15 @@ void FX_TracerSound( const Vector &start, const Vector &end, int iTracerType )
 		break;
 
 	case TRACER_TYPE_GUNSHIP:
-		pszSoundName = "Bullets.GunshipNearmiss";
+		//pszSoundName = "Bullets.GunshipNearmiss";
 		break;
 
 	case TRACER_TYPE_STRIDER:
-		pszSoundName = "Bullets.StriderNearmiss";
+		//pszSoundName = "Bullets.StriderNearmiss";
 		break;
 
 	case TRACER_TYPE_WATERBULLET:
-		pszSoundName = "Underwater.BulletImpact";
+		//pszSoundName = "Underwater.BulletImpact";
 		flWhizDist = 48;
 		flMinWhizTime = 0.3f;
 		flMaxWhizTime = 0.6f;

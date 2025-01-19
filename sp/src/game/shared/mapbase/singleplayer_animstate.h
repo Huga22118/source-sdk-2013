@@ -22,7 +22,7 @@
 
 #include "cbase.h"
 #include "base_playeranimstate.h"
-
+#include "..\public\datacache\imdlcache.h"
 #ifdef CLIENT_DLL
 #include "c_baseplayer.h"
 #else
@@ -31,7 +31,7 @@
 
 #ifdef MAPBASE
 // Special definition for differentiating between SP and HL2:DM anim states
-#define SP_ANIM_STATE 1
+#define SP_ANIM_STATE 
 #endif
 
 class CSinglePlayerAnimState : public CBasePlayerAnimState

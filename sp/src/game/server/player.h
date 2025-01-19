@@ -864,6 +864,14 @@ public:
 		}
 	}
 
+	void HandleFastRegen();
+
+	float			m_flLastDamageTime;
+	bool m_bFastRegenActive;
+	float m_flFastRegenStartTime;
+	float m_flNextFastRegenTime;
+	bool m_isPlayerNearDying = false;
+
 private:
 	// How much of a movement time buffer can we process from this user?
 	float				m_flMovementTimeForUserCmdProcessingRemaining;

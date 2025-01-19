@@ -59,6 +59,7 @@
 #include "env_zoom.h"
 #include "rumble_shared.h"
 #include "gamestats.h"
+#include "soundent.h"
 #ifdef MAPBASE // From Alien Swarm SDK
 #include "env_tonemap_controller.h"
 #include "fogvolume.h"
@@ -73,6 +74,7 @@
 #include "dt_utlvector_send.h"
 #include "vote_controller.h"
 #include "ai_speech.h"
+
 
 #if defined USES_ECON_ITEMS
 #include "econ_wearable.h"
@@ -168,6 +170,7 @@ extern CServerGameDLL g_ServerGameDLL;
 
 extern bool		g_fDrawLines;
 int				gEvilImpulse101;
+float     m_fRegenRemander;
 
 bool gInitHUD = true;
 
@@ -194,6 +197,11 @@ ConVar	sk_player_chest( "sk_player_chest","1" );
 ConVar	sk_player_stomach( "sk_player_stomach","1" );
 ConVar	sk_player_arm( "sk_player_arm","1" );
 ConVar	sk_player_leg( "sk_player_leg","1" );
+// HUGAMOD: Call of Duty style low health damage indicator
+ConVar sv_regeneration("sv_regeneration", "1", FCVAR_REPLICATED);
+ConVar sv_regeneration_wait_time("sv_regeneration_wait_time", "1.0", FCVAR_REPLICATED);
+//ConVar sv_regeneration_rate("sv_regeneration_rate", "0.5", FCVAR_REPLICATED);
+ConVar sv_regeneration_rate("sv_regeneration_rate", "2.5", FCVAR_REPLICATED);
 
 //ConVar	player_usercommand_timeout( "player_usercommand_timeout", "10", 0, "After this many seconds without a usercommand from a player, the client is kicked." );
 #ifdef _DEBUG
@@ -343,6 +351,8 @@ BEGIN_DATADESC( CBasePlayer )
 	DEFINE_FIELD( m_iBonusChallenge, FIELD_INTEGER ),
 	DEFINE_FIELD( m_lastDamageAmount, FIELD_INTEGER ),
 	DEFINE_FIELD( m_tbdPrev, FIELD_TIME ),
+	DEFINE_FIELD(m_flLastDamageTime, FIELD_TIME),
+	DEFINE_FIELD(m_isPlayerNearDying, FIELD_BOOLEAN),
 	DEFINE_FIELD( m_flStepSoundTime, FIELD_FLOAT ),
 	DEFINE_ARRAY( m_szNetname, FIELD_CHARACTER, MAX_PLAYER_NAME_LENGTH ),
 
@@ -734,6 +744,8 @@ CBasePlayer::CBasePlayer( )
 	m_szNetname[0] = '\0';
 
 	m_iHealth = 0;
+	// HUGAMOD: Call of Duty style low health damage indicator
+	m_fRegenRemander = 0;
 	Weapon_SetLast( NULL );
 	m_bitsDamageType = 0;
 
@@ -995,13 +1007,25 @@ void CBasePlayer::DeathSound( const CTakeDamageInfo &info )
 	}
 	else
 	{
-		EmitSound( "Player.Death" );
+		if (LastHitGroup() == HITGROUP_HEAD)
+		{
+			if (IsSuitEquipped())
+			{
+				EmitSound("HL2Player.DeathHelmet");
+			}
+			else
+			{
+				EmitSound("HL2Player.DeathHeadshot");
+			}
+		}
+		//EmitSound( "Player.Death" );
+		EmitSound("HL2Player.Death");
 	}
 
 	// play one of the suit death alarms
 	if ( IsSuitEquipped() )
 	{
-		UTIL_EmitGroupnameSuit(edict(), "HEV_DEAD");
+		//UTIL_EmitGroupnameSuit(edict(), "HEV_DEAD");
 	}
 }
 
@@ -1096,20 +1120,45 @@ void CBasePlayer::TraceAttack( const CTakeDamageInfo &inputInfo, const Vector &v
 			break;
 		case HITGROUP_HEAD:
 			info.ScaleDamage( sk_player_head.GetFloat() );
+			if (IsSuitEquipped())
+			{
+				EmitSound("Flesh.Helmet");
+			} 
+			else EmitSound("Flesh.Headshot");
 			break;
 		case HITGROUP_CHEST:
 			info.ScaleDamage( sk_player_chest.GetFloat() );
+			if (IsSuitEquipped())
+			{
+				EmitSound("Flesh.SuitDamage");
+			}
+			else EmitSound("Flesh.BulletImpact");
 			break;
 		case HITGROUP_STOMACH:
 			info.ScaleDamage( sk_player_stomach.GetFloat() );
+			if (IsSuitEquipped())
+			{
+				EmitSound("Flesh.SuitDamage");
+			}
+			else EmitSound("Flesh.BulletImpact");
 			break;
 		case HITGROUP_LEFTARM:
 		case HITGROUP_RIGHTARM:
 			info.ScaleDamage( sk_player_arm.GetFloat() );
+			if (IsSuitEquipped())
+			{
+				EmitSound("Flesh.SuitDamage");
+			}
+			else EmitSound("Flesh.BulletImpact");
 			break;
 		case HITGROUP_LEFTLEG:
 		case HITGROUP_RIGHTLEG:
 			info.ScaleDamage( sk_player_leg.GetFloat() );
+			if (IsSuitEquipped())
+			{
+				EmitSound("Flesh.SuitDamage");
+			}
+			else EmitSound("Flesh.BulletImpact");
 			break;
 		default:
 			break;
@@ -1151,14 +1200,14 @@ void CBasePlayer::DamageEffect(float flDamage, int fDamageType)
 	if (fDamageType & DMG_CRUSH)
 	{
 		//Red damage indicator
-		color32 red = {128,0,0,128};
-		UTIL_ScreenFade( this, red, 1.0f, 0.1f, FFADE_IN );
+		color32 red = { 128,0,0,128 };
+		UTIL_ScreenFade(this, red, 1.0f, 0.1f, FFADE_IN);
 	}
 	else if (fDamageType & DMG_DROWN)
 	{
 		//Red damage indicator
-		color32 blue = {0,0,128,128};
-		UTIL_ScreenFade( this, blue, 1.0f, 0.1f, FFADE_IN );
+		color32 blue = { 0,0,128,128 };
+		UTIL_ScreenFade(this, blue, 1.0f, 0.1f, FFADE_IN);
 	}
 	else if (fDamageType & DMG_SLASH)
 	{
@@ -1168,8 +1217,8 @@ void CBasePlayer::DamageEffect(float flDamage, int fDamageType)
 	else if (fDamageType & DMG_PLASMA)
 	{
 		// Blue screen fade
-		color32 blue = {0,0,255,100};
-		UTIL_ScreenFade( this, blue, 0.2, 0.4, FFADE_MODULATE );
+		color32 blue = { 0,0,255,100 };
+		UTIL_ScreenFade(this, blue, 0.2, 0.4, FFADE_MODULATE);
 
 		// Very small screen shake
 		// Both -0.1 and 0.1 map to 0 when converted to integer, so all of these RandomInt
@@ -1179,16 +1228,12 @@ void CBasePlayer::DamageEffect(float flDamage, int fDamageType)
 		//ViewPunch(QAngle(random->RandomInt(-0.1,0.1), random->RandomInt(-0.1,0.1), random->RandomInt(-0.1,0.1)));
 
 		// Burn sound 
-		EmitSound( "Player.PlasmaDamage" );
+		EmitSound("Player.PlasmaDamage");
 	}
 	else if (fDamageType & DMG_SONIC)
 	{
 		// Sonic damage sound 
-		EmitSound( "Player.SonicDamage" );
-	}
-	else if ( fDamageType & DMG_BULLET )
-	{
-		EmitSound( "Flesh.BulletImpact" );
+		EmitSound("Player.SonicDamage");
 	}
 }
 
@@ -1218,7 +1263,6 @@ bool CBasePlayer::ShouldTakeDamageInCommentaryMode( const CTakeDamageInfo &input
 	// Allow SetHealth inputs to kill player.
 	if ( inputInfo.GetInflictor() == this && inputInfo.GetAttacker() == this )
 		return true;
-
 #ifdef PORTAL
 	if ( inputInfo.GetDamageType() & DMG_ACID )
 		return true;
@@ -1538,7 +1582,7 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 			flPunch = RandomFloat( -5, -7 );
 	}
 
-	m_Local.m_vecPunchAngle.SetX( flPunch );
+	//m_Local.m_vecPunchAngle.SetX( flPunch );
 
 	if (fTookDamage && !ftrivial && fmajor && flHealthPrev >= 75) 
 	{
@@ -1582,7 +1626,76 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 		OnDamagedByExplosion( info );
 	}
 
+	if (GetHealth() < 100) {
+		m_flLastDamageTime = gpGlobals->curtime;
+	}
+
+	if (IsAlive() && GetHealth() < 100 && !m_bFastRegenActive) {
+		
+		m_bFastRegenActive = true;
+		m_flFastRegenStartTime = gpGlobals->curtime + 5.0f; // Mulai regenerasi cepat setelah 5 detik
+		m_flNextFastRegenTime = m_flFastRegenStartTime;
+		//UTIL_ScreenFade(this, red, 1.0f, m_flFastRegenStartTime, FFADE_IN | FFADE_PURGE);
+	}
+	if (GetHealth() < 25) {
+		color32 red = { 128, 0, 0, 128 };
+		UTIL_ScreenFade(this, red, 3.0f, 5.0f, FFADE_IN);
+		
+	//ViewPunch(QAngle(random->RandomInt(-2, 2), random->RandomInt(-2, 2), random->RandomInt(-2, 2)));
+		if (!m_isPlayerNearDying)
+		{
+			QAngle punchAngle = GetPunchAngle();
+			punchAngle.x = info.GetDamage() * -0.5;
+
+			if (punchAngle.x < -12)
+				punchAngle.x = -12;
+
+			punchAngle.z = info.GetDamage() * random->RandomFloat(-1, 1);
+
+			if (punchAngle.z < -9)
+				punchAngle.z = -9;
+
+			else if (punchAngle.z > 9)
+				punchAngle.z = 9;
+
+			SetPunchAngle(punchAngle);
+			//CPASAttenuationFilter filter(this);
+			//EmitSound(filter, SOUND_FROM_LOCAL_PLAYER, "Flesh.Headshot");
+			EmitSound("Flesh.BulletImpact");
+
+			m_isPlayerNearDying = true;
+		}
+	}
+
 	return fTookDamage;
+}
+
+void CBasePlayer::HandleFastRegen()
+{
+	
+	if (gpGlobals->curtime - m_flLastDamageTime < 5.0f)
+	{
+		// Not enough time has passed, do not start regeneration
+		return;
+	}
+	if (m_bFastRegenActive && gpGlobals->curtime >= m_flFastRegenStartTime)
+	{
+		if (gpGlobals->curtime >= m_flNextFastRegenTime)
+		{
+
+
+			// Tambahkan darah secara bertahap
+			TakeHealth(5, DMG_GENERIC); // Tambahkan 5 darah setiap kali
+			m_flNextFastRegenTime = gpGlobals->curtime + 0.1f; // Atur waktu regenerasi berikutnya
+			m_isPlayerNearDying = false;
+			// Hentikan regenerasi cepat jika darah sudah mencapai 100
+			if (GetHealth() >= 100)
+			{
+				m_bFastRegenActive = false;
+			}
+		}
+	}
+	
 }
 
 //-----------------------------------------------------------------------------
@@ -4885,6 +4998,35 @@ void CBasePlayer::PostThink()
 	SimulatePlayerSimulatedEntities();
 #endif
 
+	// HUGAMOD: Call of Duty style low health regeneration
+	// Regenerate heath
+	/*if (IsAlive() && GetHealth() < 25 && (sv_regeneration.GetInt() == 1))
+	{
+		// Color to overlay on the screen while the player is taking damage
+		//color32 hurtScreenOverlay = { 80,0,0,64 };
+		color32 red = { 128,0,0,128 };
+		//UTIL_ScreenFade(this, red, 1.0f, 0.1f, FFADE_IN)
+
+
+		if (gpGlobals->curtime > m_flLastDamageTime + sv_regeneration_wait_time.GetFloat())
+		{
+			//Regenerate based on rate, and scale it by the frametime
+			m_fRegenRemander += sv_regeneration_rate.GetFloat()  * gpGlobals->frametime;
+
+			if (m_fRegenRemander >= 1)
+			{
+				TakeHealth(5, DMG_GENERIC);
+				m_fRegenRemander = 0;
+			}
+		}
+		else
+		{
+			UTIL_ScreenFade(this, red, 1.0f, 0.1f, FFADE_IN | FFADE_PURGE);
+		}
+	}*/
+
+	HandleFastRegen();
+	
 }
 
 // handles touching physics objects
@@ -5410,6 +5552,12 @@ void CBasePlayer::Precache( void )
 	PrecacheScriptSound( "Player.DrownContinue" );
 	PrecacheScriptSound( "Player.Wade" );
 	PrecacheScriptSound( "Player.AmbientUnderWater" );
+	
+	PrecacheScriptSound("HL2Player.DeathHelmet");
+	PrecacheScriptSound("HL2Player.DeathHeadshot");
+	PrecacheScriptSound("Flesh.Headshot");
+	PrecacheScriptSound("Flesh.BulletImpact");
+	PrecacheScriptSound("HL2Player.Death");
 	enginesound->PrecacheSentenceGroup( "HEV" );
 
 	// These are always needed

@@ -364,10 +364,11 @@ void CHudDamageIndicator::MsgFunc_Damage( bf_read &msg )
 	}
 
 	// if we have no suit, all damage is high
-	if ( !pPlayer->IsSuitEquipped() )
+	// HUGAMOD: Call of Duty style low health damage indicator
+	/*if (!pPlayer->IsSuitEquipped())
 	{
 		highDamage = DAMAGE_HIGH;
-	}
+	}*/
 
 	if ( damageTaken > 0 || armor > 0 )
 	{

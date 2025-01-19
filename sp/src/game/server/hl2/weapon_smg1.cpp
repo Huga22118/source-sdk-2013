@@ -20,6 +20,7 @@
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+#include <grenade_frag.h>
 
 extern ConVar    sk_plr_dmg_smg1_grenade;	
 #ifdef MAPBASE
@@ -456,7 +457,10 @@ void CWeaponSMG1::SecondaryAttack( void )
 	//Create the grenade
 	QAngle angles;
 	VectorAngles( vecThrow, angles );
-	CGrenadeAR2 *pGrenade = (CGrenadeAR2*)Create( "grenade_ar2", vecSrc, angles, pPlayer );
+	
+	//CBaseGrenade* pGrenade = Fraggrenade_Create(vecSrc, angles, vecThrow, AngularImpulse(600, random->RandomInt(-1200, 1200), 0), pPlayer, 3.5f, false);
+		CGrenadeAR2 *pGrenade = (CGrenadeAR2*)Create( "grenade_ar2", vecSrc, angles, pPlayer );
+	//CBaseGrenade* pGrenade = GrenadeCreate(vecSrc, angles, vecThrow, AngularImpulse(600, random->RandomInt(-1200, 1200), 0), pPlayer);
 	pGrenade->SetAbsVelocity( vecThrow );
 
 	pGrenade->SetLocalAngularVelocity( RandomAngle( -400, 400 ) );

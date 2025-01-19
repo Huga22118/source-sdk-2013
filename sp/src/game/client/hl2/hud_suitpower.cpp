@@ -100,9 +100,12 @@ void CHudSuitPower::OnThink( void )
 	}
 
 	bool flashlightActive = pPlayer->IsFlashlightActive();
+	/* unused bool
 	bool sprintActive = pPlayer->IsSprinting();
+	*/
 	bool breatherActive = pPlayer->IsBreatherActive();
-	int activeDevices = (int)flashlightActive + (int)sprintActive + (int)breatherActive;
+	/*int activeDevices = (int)flashlightActive + (int)sprintActive + (int)breatherActive;*/
+	int activeDevices = (int)flashlightActive + (int)breatherActive;
 
 #ifdef MAPBASE
 	activeDevices += (int)pPlayer->IsCustomDevice0Active() + (int)pPlayer->IsCustomDevice1Active() + (int)pPlayer->IsCustomDevice2Active();
@@ -149,13 +152,13 @@ void CHudSuitPower::OnThink( void )
 //-----------------------------------------------------------------------------
 void CHudSuitPower::Paint()
 {
-	C_BaseHLPlayer *pPlayer = (C_BaseHLPlayer *)C_BasePlayer::GetLocalPlayer();
-	if ( !pPlayer )
+	C_BaseHLPlayer* pPlayer = (C_BaseHLPlayer*)C_BasePlayer::GetLocalPlayer();
+	if (!pPlayer)
 		return;
 
 	// get bar chunks
 	int chunkCount = m_flBarWidth / (m_flBarChunkWidth + m_flBarChunkGap);
-	int enabledChunks = (int)((float)chunkCount * (m_flSuitPower * 1.0f/100.0f) + 0.5f );
+	int enabledChunks = (int)((float)chunkCount * (m_flSuitPower * 1.0f / 100.0f) + 0.5f);
 
 	// see if we've changed power state
 	int lowPower = 0;
@@ -180,18 +183,18 @@ void CHudSuitPower::Paint()
 	}
 
 	// draw the suit power bar
-	surface()->DrawSetColor( m_AuxPowerColor );
+	surface()->DrawSetColor(m_AuxPowerColor);
 	int xpos = m_flBarInsetX, ypos = m_flBarInsetY;
 	for (int i = 0; i < enabledChunks; i++)
 	{
-		surface()->DrawFilledRect( xpos, ypos, xpos + m_flBarChunkWidth, ypos + m_flBarHeight );
+		surface()->DrawFilledRect(xpos, ypos, xpos + m_flBarChunkWidth, ypos + m_flBarHeight);
 		xpos += (m_flBarChunkWidth + m_flBarChunkGap);
 	}
 	// draw the exhausted portion of the bar.
-	surface()->DrawSetColor( Color( m_AuxPowerColor[0], m_AuxPowerColor[1], m_AuxPowerColor[2], m_iAuxPowerDisabledAlpha ) );
+	surface()->DrawSetColor(Color(m_AuxPowerColor[0], m_AuxPowerColor[1], m_AuxPowerColor[2], m_iAuxPowerDisabledAlpha));
 	for (int i = enabledChunks; i < chunkCount; i++)
 	{
-		surface()->DrawFilledRect( xpos, ypos, xpos + m_flBarChunkWidth, ypos + m_flBarHeight );
+		surface()->DrawFilledRect(xpos, ypos, xpos + m_flBarChunkWidth, ypos + m_flBarHeight);
 		xpos += (m_flBarChunkWidth + m_flBarChunkGap);
 	}
 
@@ -200,7 +203,7 @@ void CHudSuitPower::Paint()
 	surface()->DrawSetTextColor(m_AuxPowerColor);
 	surface()->DrawSetTextPos(text_xpos, text_ypos);
 
-	wchar_t *tempString = g_pVGuiLocalize->Find("#Valve_Hud_AUX_POWER");
+	wchar_t* tempString = g_pVGuiLocalize->Find("#Valve_Hud_AUX_POWER");
 
 	if (tempString)
 	{
@@ -211,7 +214,7 @@ void CHudSuitPower::Paint()
 		surface()->DrawPrintText(L"AUX POWER", wcslen(L"AUX POWER"));
 	}
 
-	if ( m_iActiveSuitDevices )
+	if (m_iActiveSuitDevices)
 	{
 		// draw the additional text
 		int ypos = text2_ypos;
@@ -250,6 +253,7 @@ void CHudSuitPower::Paint()
 			ypos += text2_gap;
 		}
 
+		/* HUGAMOD: Sprinting is no longer consumes suit power
 		if (pPlayer->IsSprinting())
 		{
 			tempString = g_pVGuiLocalize->Find("#Valve_Hud_SPRINT");
@@ -265,7 +269,7 @@ void CHudSuitPower::Paint()
 				surface()->DrawPrintText(L"SPRINT", wcslen(L"SPRINT"));
 			}
 			ypos += text2_gap;
-		}
+		}*/
 
 #ifdef MAPBASE
 		if (pPlayer->IsCustomDevice0Active())

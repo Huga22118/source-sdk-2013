@@ -46,6 +46,7 @@
 #include "gamestats.h"
 #include "filters.h"
 #include "tier0/icommandline.h"
+#include "basecombatweapon.h"
 
 #ifdef HL2_EPISODIC
 #include "npc_alyx_episodic.h"
@@ -65,6 +66,7 @@
 
 extern ConVar weapon_showproficiency;
 extern ConVar autoaim_max_dist;
+#define PLAYER_MODEL "models/player/player_test_citizen_male.mdl"
 
 #ifdef MAPBASE
 extern ConVar player_squad_autosummon_enabled;
@@ -99,7 +101,10 @@ ConVar hl2_darkness_flashlight_factor ( "hl2_darkness_flashlight_factor", "1" );
 	#define	HL2_NORM_SPEED 190
 	#define	HL2_SPRINT_SPEED 320
 #else
-	#define	HL2_WALK_SPEED hl2_walkspeed.GetFloat()
+	/* HUGAMOD: Sprinting is no longer consumes suit power
+	 #define	HL2_WALK_SPEED hl2_walkspeed.GetFloat()
+	*/
+    #define	HL2_WALK_SPEED hl2_normspeed.GetFloat()
 	#define	HL2_NORM_SPEED hl2_normspeed.GetFloat()
 	#define	HL2_SPRINT_SPEED hl2_sprintspeed.GetFloat()
 #endif
@@ -644,12 +649,12 @@ CHL2_Player::CHL2_Player()
 // SUIT POWER DEVICES
 //
 #define SUITPOWER_CHARGE_RATE	12.5											// 100 units in 8 seconds
-
-#ifdef HL2MP
-	CSuitPowerDevice SuitDeviceSprint( bits_SUIT_DEVICE_SPRINT, 25.0f );				// 100 units in 4 seconds
+/*#ifdef HL2MP
+	//CSuitPowerDevice SuitDeviceSprint( bits_SUIT_DEVICE_SPRINT, 25.0f );				// 100 units in 4 seconds
 #else
-	CSuitPowerDevice SuitDeviceSprint( bits_SUIT_DEVICE_SPRINT, 12.5f );				// 100 units in 8 seconds
-#endif
+	//CSuitPowerDevice SuitDeviceSprint( bits_SUIT_DEVICE_SPRINT, 12.5f );				// 100 units in 8 seconds
+#endif*/
+
 
 #ifdef HL2_EPISODIC
 	CSuitPowerDevice SuitDeviceFlashlight( bits_SUIT_DEVICE_FLASHLIGHT, 1.111 );	// 100 units in 90 second
@@ -691,6 +696,12 @@ void CHL2_Player::Precache( void )
 	PrecacheScriptSound( "HL2Player.TrainUse" );
 	PrecacheScriptSound( "HL2Player.Use" );
 	PrecacheScriptSound( "HL2Player.BurnPain" );
+	PrecacheScriptSound("Flesh.BulletImpact");
+	PrecacheScriptSound("Flesh.SuitDamage");
+	//PrecacheScriptSound("Flesh.Headshot");
+	PrecacheScriptSound("Flesh.Helmet");
+
+	PrecacheModel(PLAYER_MODEL);
 }
 
 //-----------------------------------------------------------------------------
@@ -740,7 +751,10 @@ void CHL2_Player::HandleSpeedChanges( void )
 
 	bool bCanSprint = CanSprint();
 	bool bIsSprinting = IsSprinting();
-	bool bWantSprint = ( bCanSprint && IsSuitEquipped() && (m_nButtons & IN_SPEED) );
+	/* HUGAMOD: Sprinting is no longer consumes suit power
+	bool bWantSprint = (bCanSprint && IsSuitEquipped() && (m_nButtons & IN_SPEED));
+	*/
+	bool bWantSprint = (bCanSprint && (m_nButtons & IN_SPEED));
 	if ( bIsSprinting != bWantSprint && (buttonsChanged & IN_SPEED) )
 	{
 		// If someone wants to sprint, make sure they've pressed the button to do so. We want to prevent the
@@ -768,9 +782,9 @@ void CHL2_Player::HandleSpeedChanges( void )
 		}
 	}
 
-	bool bIsWalking = IsWalking();
+	
 	// have suit, pressing button, not sprinting or ducking
-	bool bWantWalking;
+	/*bool bWantWalking;
 	
 	if( IsSuitEquipped() )
 	{
@@ -779,7 +793,10 @@ void CHL2_Player::HandleSpeedChanges( void )
 	else
 	{
 		bWantWalking = true;
-	}
+	}*/
+	//bool bWantWalking;
+	bool bIsWalking = IsWalking();
+	bool bWantWalking = (m_nButtons & IN_WALK) && !IsSprinting() && !(m_nButtons & IN_DUCK);;
 	
 	if( bIsWalking != bWantWalking )
 	{
@@ -792,6 +809,7 @@ void CHL2_Player::HandleSpeedChanges( void )
 			StopWalking();
 		}
 	}
+	
 }
 
 //-----------------------------------------------------------------------------
@@ -1495,8 +1513,9 @@ void CHL2_Player::Spawn(void)
 #ifndef HL2MP
 #ifndef PORTAL
 #ifdef MAPBASE
-	if ( GetModelName() == NULL_STRING )
-		SetModel( g_szDefaultPlayerModel );
+	//if ( GetModelName() == NULL_STRING )
+		//SetModel( g_szDefaultPlayerModel );
+	SetModel(PLAYER_MODEL);
 #else
 	SetModel( "models/player.mdl" );
 #endif
@@ -1524,7 +1543,9 @@ void CHL2_Player::Spawn(void)
 	//
 	//m_flMaxspeed = 320;
 
-	if ( !IsSuitEquipped() )
+	/* HUGAMOD: Sprinting is no longer consumes suit power
+	if (!IsSuitEquipped())
+	*/
 		 StartWalking();
 
 	SuitPower_SetCharge( 100 );
@@ -1567,11 +1588,17 @@ void CHL2_Player::InitSprinting( void )
 //-----------------------------------------------------------------------------
 bool CHL2_Player::CanSprint()
 {
-	return ( m_bSprintEnabled &&										// Only if sprint is enabled 
+	/* HUGAMOD: Sprinting is no longer consumes suit power
+	return (m_bSprintEnabled &&										// Only if sprint is enabled 
 			!IsWalking() &&												// Not if we're walking
 			!( m_Local.m_bDucked && !m_Local.m_bDucking ) &&			// Nor if we're ducking
 			(GetWaterLevel() != 3) &&									// Certainly not underwater
 			(GlobalEntity_GetState("suit_no_sprint") != GLOBAL_ON) );	// Out of the question without the sprint module
+			*/
+	return (m_bSprintEnabled &&										// Only if sprint is enabled 
+		!IsWalking() &&												// Not if we're walking
+		!(m_Local.m_bDucked && !m_Local.m_bDucking) &&			// Nor if we're ducking
+		(GetWaterLevel() != 3));
 }
 
 //-----------------------------------------------------------------------------
@@ -1594,7 +1621,8 @@ void CHL2_Player::StartAutoSprint()
 //-----------------------------------------------------------------------------
 void CHL2_Player::StartSprinting( void )
 {
-	if( m_HL2Local.m_flSuitPower < 10 )
+	/* HUGAMOD: Sprinting is no longer consumes suit power
+	if (m_HL2Local.m_flSuitPower < 10)
 	{
 		// Don't sprint unless there's a reasonable
 		// amount of suit power.
@@ -1608,9 +1636,12 @@ void CHL2_Player::StartSprinting( void )
 		}
 		return;
 	}
+	*/
 
-	if( !SuitPower_AddDevice( SuitDeviceSprint ) )
+	/* HUGAMOD: Sprinting is no longer consumes suit power
+	if (!SuitPower_AddDevice(SuitDeviceSprint))
 		return;
+		*/
 
 	CPASAttenuationFilter filter( this );
 	filter.UsePredictionRules();
@@ -1625,7 +1656,8 @@ void CHL2_Player::StartSprinting( void )
 //-----------------------------------------------------------------------------
 void CHL2_Player::StopSprinting( void )
 {
-	if ( m_HL2Local.m_bitsActiveDevices & SuitDeviceSprint.GetDeviceID() )
+	/* HUGAMOD: Sprinting is no longer consumes suit power
+	if (m_HL2Local.m_bitsActiveDevices & SuitDeviceSprint.GetDeviceID())
 	{
 		SuitPower_RemoveDevice( SuitDeviceSprint );
 	}
@@ -1638,7 +1670,8 @@ void CHL2_Player::StopSprinting( void )
 	{
 		SetMaxSpeed( HL2_WALK_SPEED );
 	}
-
+	*/
+	SetMaxSpeed(HL2_WALK_SPEED);
 	m_fIsSprinting = false;
 
 	if ( sv_stickysprint.GetBool() )
@@ -2350,7 +2383,7 @@ void CHL2_Player::SuitPower_Update( void )
 	else if( m_HL2Local.m_bitsActiveDevices )
 	{
 		float flPowerLoad = m_flSuitPowerLoad;
-
+		/* HUGAMOD: Sprinting is no longer consumes suit power
 		//Since stickysprint quickly shuts off sprint if it isn't being used, this isn't an issue.
 		if ( !sv_stickysprint.GetBool() )
 		{
@@ -2362,7 +2395,8 @@ void CHL2_Player::SuitPower_Update( void )
 					flPowerLoad -= SuitDeviceSprint.GetDeviceDrainRate();
 				}
 			}
-		}
+		}*/
+		
 
 		if( SuitPower_IsDeviceActive(SuitDeviceFlashlight) )
 		{
@@ -2373,13 +2407,21 @@ void CHL2_Player::SuitPower_Update( void )
 			flPowerLoad -= ( SuitDeviceFlashlight.GetDeviceDrainRate() * (1.0f - factor) );
 		}
 
+		/* HUGAMOD: Sprinting is no longer consumes suit power
+		if (SuitPower_IsDeviceActive(SuitDeviceSprint))
+		{
+			
+				flPowerLoad -= SuitDeviceSprint.GetDeviceDrainRate();
+			
+		}*/
+
 		if( !SuitPower_Drain( flPowerLoad * gpGlobals->frametime ) )
 		{
 			// TURN OFF ALL DEVICES!!
-			if( IsSprinting() )
+			/*if (IsSprinting())
 			{
 				StopSprinting();
-			}
+			}*/
 
 			if ( Flashlight_UseLegacyVersion() )
 			{
@@ -2909,6 +2951,36 @@ void CHL2_Player::NotifyFriendsOfDamage( CBaseEntity *pAttackerEntity )
 	}
 }
 
+void CHL2_Player::Pain(int nDmgTypeBits)
+{
+	if (nDmgTypeBits & DMG_BULLET || nDmgTypeBits & DMG_BUCKSHOT) {
+		switch (m_LastHitGroup)
+		{
+		case HITGROUP_HEAD:
+			if (IsSuitEquipped())
+			{
+				EmitSound("Flesh.Helmet");
+			}
+			else
+			{
+				EmitSound("Flesh.Headshot");
+			}
+			break;
+		default:
+			if (IsSuitEquipped()) 
+			{
+				EmitSound("Flesh.SuitDamage");
+			}
+			else
+			{
+				EmitSound("Flesh.BulletImpact");
+			}
+			break;
+		}
+		return;
+	}
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -2919,6 +2991,8 @@ int	CHL2_Player::OnTakeDamage( const CTakeDamageInfo &info )
 	if ( GlobalEntity_GetState( "gordon_invulnerable" ) == GLOBAL_ON )
 		return 0;
 
+
+	
 	// ignore fall damage if instructed to do so by input
 	if ( ( info.GetDamageType() & DMG_FALL ) && m_flTimeIgnoreFallDamage > gpGlobals->curtime )
 	{
@@ -2929,6 +3003,12 @@ int	CHL2_Player::OnTakeDamage( const CTakeDamageInfo &info )
 			m_flTimeIgnoreFallDamage = 0;
 		}
 		return 0;
+	}
+
+	if (!(info.GetDamageType() & DMG_FALL) && !(info.GetDamageType() & DMG_BURN) && !(info.GetDamageType() & DMG_BLAST))
+	{
+
+		Pain(info.GetDamageType());
 	}
 
 	if( info.GetDamageType() & DMG_BLAST_SURFACE )
@@ -2979,6 +3059,8 @@ int	CHL2_Player::OnTakeDamage( const CTakeDamageInfo &info )
 
 	gamestats->Event_PlayerDamage( this, info );
 
+
+
 #ifdef MAPBASE
 	FirePlayerProxyOutput("PlayerDamaged", variant_t(), info.GetAttacker(), this);
 #endif
@@ -3010,7 +3092,6 @@ int CHL2_Player::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 	{
 		EmitSound( "HL2Player.BurnPain" );
 	}
-
 
 	if( (info.GetDamageType() & DMG_SLASH) && hl2_episodic.GetBool() )
 	{
