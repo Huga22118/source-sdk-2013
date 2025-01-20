@@ -1120,45 +1120,20 @@ void CBasePlayer::TraceAttack( const CTakeDamageInfo &inputInfo, const Vector &v
 			break;
 		case HITGROUP_HEAD:
 			info.ScaleDamage( sk_player_head.GetFloat() );
-			if (IsSuitEquipped())
-			{
-				EmitSound("Flesh.Helmet");
-			} 
-			else EmitSound("Flesh.Headshot");
 			break;
 		case HITGROUP_CHEST:
 			info.ScaleDamage( sk_player_chest.GetFloat() );
-			if (IsSuitEquipped())
-			{
-				EmitSound("Flesh.SuitDamage");
-			}
-			else EmitSound("Flesh.BulletImpact");
 			break;
 		case HITGROUP_STOMACH:
 			info.ScaleDamage( sk_player_stomach.GetFloat() );
-			if (IsSuitEquipped())
-			{
-				EmitSound("Flesh.SuitDamage");
-			}
-			else EmitSound("Flesh.BulletImpact");
 			break;
 		case HITGROUP_LEFTARM:
 		case HITGROUP_RIGHTARM:
 			info.ScaleDamage( sk_player_arm.GetFloat() );
-			if (IsSuitEquipped())
-			{
-				EmitSound("Flesh.SuitDamage");
-			}
-			else EmitSound("Flesh.BulletImpact");
 			break;
 		case HITGROUP_LEFTLEG:
 		case HITGROUP_RIGHTLEG:
 			info.ScaleDamage( sk_player_leg.GetFloat() );
-			if (IsSuitEquipped())
-			{
-				EmitSound("Flesh.SuitDamage");
-			}
-			else EmitSound("Flesh.BulletImpact");
 			break;
 		default:
 			break;
@@ -1661,7 +1636,9 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 			SetPunchAngle(punchAngle);
 			//CPASAttenuationFilter filter(this);
 			//EmitSound(filter, SOUND_FROM_LOCAL_PLAYER, "Flesh.Headshot");
-			EmitSound("Flesh.BulletImpact");
+			CPASAttenuationFilter filter(this);
+			filter.UsePredictionRules();
+			EmitSound(filter, entindex(), "Flesh.Headshot");
 
 			m_isPlayerNearDying = true;
 		}

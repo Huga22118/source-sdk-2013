@@ -1,1 +1,2 @@
 E:\sourcesdkproject\source-sdk-2013\sp\src\game\server\Release_hugamod\server.dll
+D:\sourcesdkproject\hugamod\sp\src\game\server\Release_hugamod\server.dll
