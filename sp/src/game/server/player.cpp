@@ -1007,16 +1007,10 @@ void CBasePlayer::DeathSound( const CTakeDamageInfo &info )
 	}
 	else
 	{
-		if (LastHitGroup() == HITGROUP_HEAD)
+		if (m_LastHitGroup == HITGROUP_HEAD)
 		{
-			if (IsSuitEquipped())
-			{
 				EmitSound("HL2Player.DeathHelmet");
-			}
-			else
-			{
-				EmitSound("HL2Player.DeathHeadshot");
-			}
+			
 		}
 		//EmitSound( "Player.Death" );
 		EmitSound("HL2Player.Death");
@@ -1210,6 +1204,10 @@ void CBasePlayer::DamageEffect(float flDamage, int fDamageType)
 		// Sonic damage sound 
 		EmitSound("Player.SonicDamage");
 	}
+	//else if (fDamageType & DMG_BULLET)
+	//{
+	//	EmitSound("Flesh.BulletImpact");
+	//}
 }
 
 /*
@@ -1253,6 +1251,28 @@ bool CBasePlayer::ShouldTakeDamageInCommentaryMode( const CTakeDamageInfo &input
 		return false;
 
 	return true;
+}
+
+void CBasePlayer::Pain(int nDmgTypeBits)
+{
+	if (nDmgTypeBits & DMG_CLUB)
+	{		
+			EmitSound("Flesh.SuitDamage");
+		
+		return;
+	}
+
+	switch (m_LastHitGroup)
+	{
+	case HITGROUP_GENERIC:	
+			EmitSound("HL2Player.DeathHeadshot");
+		break;
+	default:
+	EmitSound("Flesh.SuitDamage");
+		
+		break;
+	}
+	
 }
 
 int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
@@ -1388,6 +1408,11 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 		}
 		
 		info.SetDamage( flNew );
+	}
+
+	if (!(info.GetDamageType() & DMG_FALL) && !(info.GetDamageType() & DMG_BURN) && !(info.GetDamageType() & DMG_BLAST))
+	{
+		Pain(info.GetDamageType());
 	}
 
 
@@ -1636,16 +1661,27 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 			SetPunchAngle(punchAngle);
 			//CPASAttenuationFilter filter(this);
 			//EmitSound(filter, SOUND_FROM_LOCAL_PLAYER, "Flesh.Headshot");
-			CPASAttenuationFilter filter(this);
-			filter.UsePredictionRules();
-			EmitSound(filter, entindex(), "Flesh.Headshot");
+			//CPASAttenuationFilter filter(this);
+			//filter.UsePredictionRules();
+			//EmitSound(filter, entindex(), "Flesh.Headshot");
+			EmitSound("Flesh.Headshot");
 
 			m_isPlayerNearDying = true;
+		}
+
+		if (!m_bBuzzingSoundActive)
+		{
+			int effect = random->RandomInt(32, 34); // Efek suara dengung
+			CSingleUserRecipientFilter user(this);
+			enginesound->SetPlayerDSP(user, effect, false);
+			m_bBuzzingSoundActive = true;
+			m_flBuzzingSoundEndTime = gpGlobals->curtime + 5.0f;
 		}
 	}
 
 	return fTookDamage;
 }
+
 
 void CBasePlayer::HandleFastRegen()
 {
@@ -1669,6 +1705,10 @@ void CBasePlayer::HandleFastRegen()
 			if (GetHealth() >= 100)
 			{
 				m_bFastRegenActive = false;
+			}
+			if (m_bBuzzingSoundActive && gpGlobals->curtime >= m_flBuzzingSoundEndTime)
+			{
+				m_bBuzzingSoundActive = false;
 			}
 		}
 	}
@@ -1712,6 +1752,9 @@ void CBasePlayer::OnDamagedByExplosion( const CTakeDamageInfo &info )
 
 	CSingleUserRecipientFilter user( this );
 	enginesound->SetPlayerDSP( user, effect, false );
+
+	m_applyDeafnessTime = gpGlobals->curtime + 0.3;
+	m_currentDeafnessFilter = 0;
 }
 
 //=========================================================
@@ -1897,27 +1940,7 @@ int CBasePlayer::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 		ApplyAbsVelocityImpulse( force );
 	}
 
-	// fire global game event
-
-	IGameEvent * event = gameeventmanager->CreateEvent( "player_hurt" );
-	if ( event )
-	{
-		event->SetInt("userid", GetUserID() );
-		event->SetInt("health", MAX(0, m_iHealth) );
-		event->SetInt("priority", 5 );	// HLTV event priority, not transmitted
-
-		if ( attacker->IsPlayer() )
-		{
-			CBasePlayer *player = ToBasePlayer( attacker );
-			event->SetInt("attacker", player->GetUserID() ); // hurt by other player
-		}
-		else
-		{
-			event->SetInt("attacker", 0 ); // hurt by "world"
-		}
-
-        gameeventmanager->FireEvent( event );
-	}
+	
 	
 	// Insert a combat sound so that nearby NPCs hear battle
 	if ( attacker->IsNPC() )
@@ -5534,6 +5557,7 @@ void CBasePlayer::Precache( void )
 	PrecacheScriptSound("HL2Player.DeathHeadshot");
 	PrecacheScriptSound("Flesh.Headshot");
 	PrecacheScriptSound("Flesh.BulletImpact");
+	PrecacheScriptSound("Flesh.SuitDamage");
 	PrecacheScriptSound("HL2Player.Death");
 	enginesound->PrecacheSentenceGroup( "HEV" );
 
@@ -6661,6 +6685,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		GiveAmmo( 5,	"grenade");
 		GiveAmmo( 32,	"357" );
 		GiveAmmo( 16,	"XBowBolt" );
+		GiveAmmo(225, "M4");
 #ifdef HL2_EPISODIC
 		GiveAmmo( 5,	"Hopwire" );
 #endif		
@@ -6675,6 +6700,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		GiveNamedItem( "weapon_rpg" );
 		GiveNamedItem( "weapon_357" );
 		GiveNamedItem( "weapon_crossbow" );
+		GiveNamedItem("weapon_m4");
 #ifdef HL2_EPISODIC
 		// GiveNamedItem( "weapon_magnade" );
 #endif

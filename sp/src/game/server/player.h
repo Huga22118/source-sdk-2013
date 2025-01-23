@@ -337,8 +337,9 @@ public:
 	virtual void			TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir, trace_t *ptr, CDmgAccumulator *pAccumulator );
 	bool					ShouldTakeDamageInCommentaryMode( const CTakeDamageInfo &inputInfo );
 	virtual int				OnTakeDamage( const CTakeDamageInfo &info );
+	//virtual void			ApplyDeafnessEffect(float duration, float fadeOutTime);
 	virtual void			DamageEffect(float flDamage, int fDamageType);
-
+	virtual void            Pain(int nDmgTypeBits);
 	virtual void			OnDamagedByExplosion( const CTakeDamageInfo &info );
 
 	void					PauseBonusProgress( bool bPause = true );
@@ -871,6 +872,11 @@ public:
 	float m_flFastRegenStartTime;
 	float m_flNextFastRegenTime;
 	bool m_isPlayerNearDying = false;
+	bool m_bBuzzingSoundActive = false;
+	float m_flBuzzingSoundEndTime;
+	protected:
+		float m_applyDeafnessTime;
+		int m_currentDeafnessFilter;
 
 private:
 	// How much of a movement time buffer can we process from this user?

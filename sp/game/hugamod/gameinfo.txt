@@ -60,7 +60,13 @@
                         game				|all_source_engine_paths|sourcetest/sourcetest_pak.vpk // sourcetest has Lost Coast content
 	  		game				|all_source_engine_paths|lostcoast/lostcoast_pak.vpk
 			platform			|all_source_engine_paths|platform/platform_misc.vpk
-                        game+mod                        |gameinfo_path|sdkassets/*
+                        game+mod	"|gameinfo_path|../mapbase_episodic"
+			game+mod	"|gameinfo_path|../mapbase_episodic/content/*"
+			game+mod	"|gameinfo_path|../mapbase_hl2"
+			game+mod	"|gameinfo_path|../mapbase_hl2/content/*"
+			game+mod	"|gameinfo_path|../mapbase_shared/shared_misc"
+                        game+mod	"|gameinfo_path|../mapbase_shared/shared_content_v7_0.vpk"
+                        gamebin	"|gameinfo_path|../mapbase_episodic/bin"
 
 			// Add the HL2 directory as a game search path.  This is also where where writes
 			// to the "game" path go.

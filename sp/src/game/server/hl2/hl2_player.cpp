@@ -697,6 +697,7 @@ void CHL2_Player::Precache( void )
 	PrecacheScriptSound( "HL2Player.Use" );
 	PrecacheScriptSound( "HL2Player.BurnPain" );
 	PrecacheScriptSound("Flesh.BulletImpact");
+	PrecacheScriptSound("Hit.Hitmarker");
 	PrecacheScriptSound("Flesh.SuitDamage");
 	//PrecacheScriptSound("Flesh.Headshot");
 	PrecacheScriptSound("Flesh.Helmet");
@@ -2953,7 +2954,7 @@ void CHL2_Player::NotifyFriendsOfDamage( CBaseEntity *pAttackerEntity )
 
 void CHL2_Player::Pain(int nDmgTypeBits)
 {
-	if (nDmgTypeBits & DMG_BULLET || nDmgTypeBits & DMG_BUCKSHOT) {
+	
 		switch (m_LastHitGroup)
 		{
 		case HITGROUP_HEAD:
@@ -2979,7 +2980,7 @@ void CHL2_Player::Pain(int nDmgTypeBits)
 		}
 		return;
 	}
-}
+
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -3003,12 +3004,6 @@ int	CHL2_Player::OnTakeDamage( const CTakeDamageInfo &info )
 			m_flTimeIgnoreFallDamage = 0;
 		}
 		return 0;
-	}
-
-	if (!(info.GetDamageType() & DMG_FALL) && !(info.GetDamageType() & DMG_BURN) && !(info.GetDamageType() & DMG_BLAST))
-	{
-
-		Pain(info.GetDamageType());
 	}
 
 	if( info.GetDamageType() & DMG_BLAST_SURFACE )
@@ -3036,6 +3031,9 @@ int	CHL2_Player::OnTakeDamage( const CTakeDamageInfo &info )
 
 	// Should we run this damage through the skill level adjustment?
 	bool bAdjustForSkillLevel = true;
+
+	if ((info.GetDamageType() & DMG_BULLET) == 0)
+		m_LastHitGroup = HITGROUP_GENERIC;
 
 	if( info.GetDamageType() == DMG_GENERIC && info.GetAttacker() == this && info.GetInflictor() == this )
 	{
@@ -3102,7 +3100,6 @@ int CHL2_Player::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 			SuspendUse( 0.5f );
 		}
 	}
-
 
 	// Call the base class implementation
 	return BaseClass::OnTakeDamage_Alive( info );

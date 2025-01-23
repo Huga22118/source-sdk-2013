@@ -875,6 +875,9 @@ CBaseCombatCharacter::CBaseCombatCharacter( void )
 	m_lastNavArea = NULL;
 	m_registeredNavTeam = TEAM_INVALID;
 
+	// hit test
+	m_LastHitGroup = HITGROUP_GENERIC;
+
 	for (int i = 0; i < MAX_WEAPONS; i++)
 	{
 		m_hMyWeapons.Set( i, NULL );
@@ -918,6 +921,8 @@ void CBaseCombatCharacter::Spawn( void )
 	{
 		m_damageHistory[t].team = TEAM_INVALID;
 	}
+
+	m_LastHitGroup = HITGROUP_GENERIC;
 
 	// not standing on a nav area yet
 	ClearLastKnownArea();

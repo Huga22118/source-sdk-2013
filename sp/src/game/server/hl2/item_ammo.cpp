@@ -542,6 +542,73 @@ public:
 LINK_ENTITY_TO_CLASS(item_ar2_grenade, CItem_AR2_Grenade);
 LINK_ENTITY_TO_CLASS(item_ammo_smg1_grenade, CItem_AR2_Grenade);
 
+class CItem_BoxM4Rounds : public CItem
+{
+public:
+	DECLARE_CLASS(CItem_BoxM4Rounds, CItem);
+
+	void Spawn()
+	{
+		Precache();
+		SetModel("models/items/boxsrounds.mdl");
+
+		BaseClass::Spawn();
+	}
+	void Precache()
+	{
+		PrecacheModel("models/items/boxsrounds.mdl");
+	}
+	bool MyTouch(CBasePlayer* pPlayer)
+	{
+		if (ITEM_GiveAmmo(pPlayer, SIZE_AMMO_M4, "M4"))
+		{
+			if (g_pGameRules->ItemShouldRespawn(this) == GR_ITEM_RESPAWN_NO)
+			{
+				UTIL_Remove(this);
+			}
+			return true;
+		}
+		return false;
+	}
+};
+LINK_ENTITY_TO_CLASS(item_box_m4rounds, CItem_BoxM4Rounds);
+LINK_ENTITY_TO_CLASS(item_ammo_m4, CItem_BoxM4Rounds);
+
+// ========================================================================
+//	>> Large Box 9mm MP5 Rounds
+// ========================================================================
+class CItem_LargeBoxM4Rounds : public CItem
+{
+public:
+	DECLARE_CLASS(CItem_LargeBoxM4Rounds, CItem);
+
+	void Spawn()
+	{
+		Precache();
+		SetModel("models/items/boxsrounds.mdl");
+
+		BaseClass::Spawn();
+	}
+	void Precache()
+	{
+		PrecacheModel("models/items/boxsrounds.mdl");
+	}
+	bool MyTouch(CBasePlayer* pPlayer)
+	{
+		if (ITEM_GiveAmmo(pPlayer, SIZE_AMMO_M4_LARGE, "M4"))
+		{
+			if (g_pGameRules->ItemShouldRespawn(this) == GR_ITEM_RESPAWN_NO)
+			{
+				UTIL_Remove(this);
+			}
+			return true;
+		}
+		return false;
+	}
+};
+LINK_ENTITY_TO_CLASS(item_large_box_m4rounds, CItem_LargeBoxM4Rounds);
+LINK_ENTITY_TO_CLASS(item_ammo_m4_large, CItem_LargeBoxM4Rounds);
+
 // ========================================================================
 //	>> BoxSniperRounds
 // ========================================================================
@@ -789,6 +856,7 @@ const char *CItem_AmmoCrate::m_lpzAmmoNames[NUM_AMMO_CRATE_TYPES] =
 	"XBowBolt",
 	"AR2AltFire",
 	"SMG1_Grenade",
+	"M4"
 #ifdef MAPBASE
 	"slam",
 	NULL,

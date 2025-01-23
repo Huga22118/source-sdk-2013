@@ -56,7 +56,7 @@ public:
 	void	FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector &vecShootOrigin, Vector &vecShootDir );
 	void	Operator_ForceNPCFire( CBaseCombatCharacter  *pOperator, bool bSecondary );
 #endif
-
+	void    DrawHitmarker(void);
 	void	UpdatePenaltyTime( void );
 
 	int		CapabilitiesGet( void ) { return bits_CAP_WEAPON_RANGE_ATTACK1; }
@@ -351,6 +351,20 @@ void CWeaponPistol::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCh
 	}
 }
 
+void CWeaponPistol::DrawHitmarker(void)
+{
+	CBasePlayer* pPlayer = ToBasePlayer(GetOwner());
+	if (pPlayer)
+	{
+#ifndef CLIENT_DLL
+		CSingleUserRecipientFilter filter(pPlayer);
+		UserMessageBegin(filter, "ShowHitmarker");
+		WRITE_BYTE(1);
+		MessageEnd();
+#endif
+	}
+}
+
 #ifdef MAPBASE
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -412,7 +426,6 @@ void CWeaponPistol::PrimaryAttack( void )
 	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), SOUNDENT_VOLUME_PISTOL, 0.2, GetOwner() );
 
 	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
-
 	if( pOwner )
 	{
 		// Each time the player fires the pistol, reset the view punch. This prevents
@@ -420,6 +433,40 @@ void CWeaponPistol::PrimaryAttack( void )
 		// not be the ideal way to achieve this, but it's cheap and it works, which is
 		// great for a feature we're evaluating. (sjb)
 		pOwner->ViewPunchReset();
+
+		trace_t tr;
+		Vector vecStart, vecStop, vecDir;
+
+		// Get the angles
+		AngleVectors(pOwner->EyeAngles(), &vecDir);
+
+		// Get the vectors
+		vecStart = pOwner->Weapon_ShootPosition();
+		vecStop = vecStart + vecDir * MAX_TRACE_LENGTH;
+
+		// Do the TraceLine
+		UTIL_TraceLine(vecStart, vecStop, MASK_ALL, pOwner, COLLISION_GROUP_NONE, &tr);
+
+		// Check to see if we hit a player
+		// Check to see if we hit an NPC
+		if (tr.m_pEnt)
+		{
+			if (tr.m_pEnt->IsNPC())
+			{
+				//CAI_BaseNPC* pNPC = dynamic_cast<CAI_BaseNPC*>(tr.m_pEnt);
+				 
+				//if (pNPC)
+				//{
+					//if (!pNPC->IsAlive())
+					//{
+						// NPC is dead
+						DrawHitmarker();
+						EmitSound("Hit.Hitmarker");
+						//UTIL_LogPrintf("Testt");
+					//}
+				//}
+			}
+		}
 	}
 
 	BaseClass::PrimaryAttack();

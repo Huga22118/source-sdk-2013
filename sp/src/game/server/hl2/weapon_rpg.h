@@ -169,6 +169,7 @@ CAPCMissile *FindAPCMissileInCone( const Vector &vecOrigin, const Vector &vecDir
 extern ConVar weapon_rpg_fire_rate;
 #endif
 
+
 //-----------------------------------------------------------------------------
 // RPG
 //-----------------------------------------------------------------------------

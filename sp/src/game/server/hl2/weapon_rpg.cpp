@@ -50,37 +50,37 @@ ConVar weapon_rpg_fire_rate( "weapon_rpg_fire_rate", "4.0" );
 
 #define APC_MISSILE_DAMAGE	sk_apc_missile_damage.GetFloat()
 
-const char *g_pLaserDotThink = "LaserThinkContext";
+const char* g_pLaserDotThink = "LaserThinkContext";
 
 //-----------------------------------------------------------------------------
 // Laser Dot
 //-----------------------------------------------------------------------------
-class CLaserDot : public CSprite 
+class CLaserDot : public CSprite
 {
-	DECLARE_CLASS( CLaserDot, CSprite );
+	DECLARE_CLASS(CLaserDot, CSprite);
 public:
 
-	CLaserDot( void );
-	~CLaserDot( void );
+	CLaserDot(void);
+	~CLaserDot(void);
 
-	static CLaserDot *Create( const Vector &origin, CBaseEntity *pOwner = NULL, bool bVisibleDot = true );
+	static CLaserDot* Create(const Vector& origin, CBaseEntity* pOwner = NULL, bool bVisibleDot = true);
 
-	void	SetTargetEntity( CBaseEntity *pTarget ) { m_hTargetEnt = pTarget; }
-	CBaseEntity *GetTargetEntity( void ) { return m_hTargetEnt; }
+	void	SetTargetEntity(CBaseEntity* pTarget) { m_hTargetEnt = pTarget; }
+	CBaseEntity* GetTargetEntity(void) { return m_hTargetEnt; }
 
-	void	SetLaserPosition( const Vector &origin, const Vector &normal );
+	void	SetLaserPosition(const Vector& origin, const Vector& normal);
 	Vector	GetChasePosition();
-	void	TurnOn( void );
-	void	TurnOff( void );
+	void	TurnOn(void);
+	void	TurnOff(void);
 	bool	IsOn() const { return m_bIsOn; }
 
-	void	Toggle( void );
+	void	Toggle(void);
 
-	void	LaserThink( void );
+	void	LaserThink(void);
 
 	int		ObjectCaps() { return (BaseClass::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_DONT_SAVE; }
 
-	void	MakeInvisible( void );
+	void	MakeInvisible(void);
 
 protected:
 	Vector				m_vecSurfaceNormal;
@@ -90,16 +90,17 @@ protected:
 
 	DECLARE_DATADESC();
 public:
-	CLaserDot			*m_pNext;
+	CLaserDot* m_pNext;
 };
 
 // a list of laser dots to search quickly
 CEntityClassList<CLaserDot> g_LaserDotList;
-template <>  CLaserDot *CEntityClassList<CLaserDot>::m_pClassList = NULL;
-CLaserDot *GetLaserDotList()
+template <>  CLaserDot* CEntityClassList<CLaserDot>::m_pClassList = NULL;
+CLaserDot* GetLaserDotList()
 {
 	return g_LaserDotList.m_pClassList;
 }
+
 
 BEGIN_DATADESC( CMissile )
 

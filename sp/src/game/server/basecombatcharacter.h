@@ -566,7 +566,6 @@ public:
 public:
 	// returns the last body region that took damage
 	//m_LastHitGroup moved to public so that other classes can access it
-	int					m_LastHitGroup;
 	int	LastHitGroup() const				{ return m_LastHitGroup; }
 #ifndef MAPBASE // For filter_damage_transfer
 protected:
@@ -620,6 +619,10 @@ private:
 	
 	static int					m_lastInteraction;	// Last registered interaction #
 	static Relationship_t**		m_DefaultRelationship;
+
+public:
+		CNetworkVar(int, m_LastHitGroup);
+private:
 
 	// attack/damage
 			// the last body region that took damage

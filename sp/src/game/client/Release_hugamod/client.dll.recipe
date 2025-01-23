@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>D:\sourcesdkproject\hugamod\sp\src\game\client\Release_hugamod\client.dll</FullPath>
+      <FullPath>E:\sourcesdkproject\source-sdk-2013\sp\src\game\client\Release_hugamod\client.dll</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />
