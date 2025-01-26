@@ -59,7 +59,6 @@
 #include "env_zoom.h"
 #include "rumble_shared.h"
 #include "gamestats.h"
-#include "soundent.h"
 #ifdef MAPBASE // From Alien Swarm SDK
 #include "env_tonemap_controller.h"
 #include "fogvolume.h"
@@ -744,8 +743,6 @@ CBasePlayer::CBasePlayer( )
 	m_szNetname[0] = '\0';
 
 	m_iHealth = 0;
-	// HUGAMOD: Call of Duty style low health damage indicator
-	m_fRegenRemander = 0;
 	Weapon_SetLast( NULL );
 	m_bitsDamageType = 0;
 
@@ -780,6 +777,8 @@ CBasePlayer::CBasePlayer( )
 	m_fDelay = 0.0f;
 	m_fReplayEnd = -1;
 	m_iReplayEntity = 0;
+	// HUGAMOD: We start the game with the both hurt breath and relief breath sound
+	// timer set to 0
 	m_flNextLowHealthSoundTime = 0.0f;
 	m_flStartReliefSoundTime = 0.0f;
 	m_autoKickDisabled = false;
