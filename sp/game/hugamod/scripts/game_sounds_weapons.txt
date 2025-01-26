@@ -139,10 +139,10 @@
 	"soundlevel"	"SNDLVL_GUNFIRE"
 	"pitch"		"85,95"
 
-	//"rndwave"
-	//{
-	//	"wave"	"weapons/ar2/fire1.wav"
-	//}
+	"rndwave"
+	{
+		"wave"	"weapons/ar2/fire1.wav"
+	}
 }
 
 "Weapon_AR2.Special1"
@@ -197,8 +197,8 @@
 	"soundlevel"	"SNDLVL_GUNFIRE"
 	"pitch"			"95,105"
 
-//	"wave"			"^weapons/ar2/npc_ar2_fire1.wav"
-//	"wave"			"^weapons/ar1/ar1_dist1.wav"
+	//"wave"			"^weapons/ar2/npc_ar2_fire1.wav"
+	"wave"			"^weapons/ar1/ar1_dist1.wav"
 
 }
 

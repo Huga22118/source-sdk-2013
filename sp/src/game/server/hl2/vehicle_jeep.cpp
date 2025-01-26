@@ -325,7 +325,7 @@ int CPropJeep::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 	{
 		info.SetDamageForce( inputInfo.GetDamageForce() * 10 );
 	}
-	
+
 	VPhysicsTakeDamage( info );
 
 	// reset the damage

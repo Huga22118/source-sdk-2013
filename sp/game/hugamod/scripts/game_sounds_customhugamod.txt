@@ -1,8 +1,8 @@
 "Hit.Hitmarker"
 {
 	"channel"		"CHAN_STATIC"
-	"volume"		"0.7"
-	"soundlevel"	"SNDLVL_140dB"
+	"volume"		"1.0"
+	"soundlevel"	"SNDLVL_GUNFIRE"
 	"pitch"			"PITCH_NORM"
 
 
@@ -11,3 +11,58 @@
 
 	
 }
+
+"Hit.Deathmarker"
+{
+	"channel"		"CHAN_STATIC"
+	"volume"		"1.0"
+	"soundlevel"	"SNDLVL_GUNFIRE"
+	"pitch"			"PITCH_NORM"
+
+
+	
+		"wave"	"weapons/kill.wav"
+
+	
+}
+
+"Player.Breathhurt"
+{
+	"channel"		"CHAN_STATIC"
+	"volume"		"1.0"
+	"soundlevel"	"SNDLVL_GUNFIRE"
+	"pitch"			"PITCH_NORM"
+
+	"rndwave"
+	{
+		"wave"		"player/h1_misc/player_breathhurt1.wav"
+		"wave"		"player/h1_misc/player_breathhurt2.wav"
+		"wave"		"player/h1_misc/player_breathhurt3.wav"
+		"wave"		"player/h1_misc/player_breathhurt4.wav"
+		"wave"		"player/h1_misc/player_breathhurt5.wav"
+		"wave"		"player/h1_misc/player_breathhurt6.wav"
+		"wave"		"player/h1_misc/player_breathhurt7.wav"
+	}
+
+	
+}
+
+"Player.Breathbetter"
+{
+	"channel"		"CHAN_STATIC"
+	"volume"		"1.0"
+	"soundlevel"	"SNDLVL_GUNFIRE"
+	"pitch"			"PITCH_NORM"
+
+
+	
+	"rndwave"
+	{
+		"wave"		"player/h1_misc/player_breathbetter1.wav"
+		"wave"		"player/h1_misc/player_breathbetter2.wav"
+		"wave"		"player/h1_misc/player_breathbetter3.wav"
+        }
+
+	
+}
+

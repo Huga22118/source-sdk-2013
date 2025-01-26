@@ -1,5 +1,5 @@
 #include "cbase.h"
-#include "c_basehlcombatweapon.h"
+/*#include "c_basehlcombatweapon.h"
 #include "beamdraw.h"
 #include "c_weapon__stubs.h"
 #include "clienteffectprecachesystem.h"
@@ -93,4 +93,4 @@ int C_LDMFOUR::DrawModel(int flags) {
 	IMaterial* pMat = materials->FindMaterial("sprites/redglow1.vmt", TEXTURE_GROUP_CLIENT_EFFECTS);
 	Vector color;
 	color.Init(0, 0, 1);
-}
+}*/

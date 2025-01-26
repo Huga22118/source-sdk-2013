@@ -780,7 +780,8 @@ CBasePlayer::CBasePlayer( )
 	m_fDelay = 0.0f;
 	m_fReplayEnd = -1;
 	m_iReplayEntity = 0;
-
+	m_flNextLowHealthSoundTime = 0.0f;
+	m_flStartReliefSoundTime = 0.0f;
 	m_autoKickDisabled = false;
 
 	m_nNumCrouches = 0;
@@ -1630,40 +1631,46 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 		m_flLastDamageTime = gpGlobals->curtime;
 	}
 
-	if (IsAlive() && GetHealth() < 100 && !m_bFastRegenActive) {
+	if (IsAlive() && GetHealth() < 100 /* && !m_bFastRegenActive*/) {
 		
 		m_bFastRegenActive = true;
-		m_flFastRegenStartTime = gpGlobals->curtime + 5.0f; // Mulai regenerasi cepat setelah 5 detik
+		// HUGAMOD: Start regeneration after 5 seconds
+		// but it will reset each time you take damage
+		m_flFastRegenStartTime = gpGlobals->curtime + 5.0f;
 		m_flNextFastRegenTime = m_flFastRegenStartTime;
-		//UTIL_ScreenFade(this, red, 1.0f, m_flFastRegenStartTime, FFADE_IN | FFADE_PURGE);
 	}
+	float flDamage = info.GetDamage();
 	if (GetHealth() < 25) {
 		color32 red = { 128, 0, 0, 128 };
-		UTIL_ScreenFade(this, red, 3.0f, 5.0f, FFADE_IN);
-		
+		UTIL_ScreenFade(this, red, 2.15f, 5.0f, FFADE_IN);
+	
+	// HUGAMOD: Commented out ugly PunchAngle
 	//ViewPunch(QAngle(random->RandomInt(-2, 2), random->RandomInt(-2, 2), random->RandomInt(-2, 2)));
 		if (!m_isPlayerNearDying)
 		{
-			QAngle punchAngle = GetPunchAngle();
-			punchAngle.x = info.GetDamage() * -0.5;
+			// HUGAMOD: Checks if the player is in a vehicle so that
+			// the player won't get punchangle, it will bug the view
+			// if you remove this check (i already bug-tested it :>)
+			if (!this->IsInAVehicle()) {
+				// HUGAMOD: Ported CSS Headshot PunchAngle
+				flDamage *= 4;
+				QAngle punchAngle = GetPunchAngle();
+				punchAngle.x = flDamage * -0.5;
 
-			if (punchAngle.x < -12)
-				punchAngle.x = -12;
+				if (punchAngle.x < -12)
+					punchAngle.x = -12;
 
-			punchAngle.z = info.GetDamage() * random->RandomFloat(-1, 1);
+				punchAngle.z = flDamage * random->RandomFloat(-1, 1);
 
-			if (punchAngle.z < -9)
-				punchAngle.z = -9;
+				if (punchAngle.z < -9)
+					punchAngle.z = -9;
 
-			else if (punchAngle.z > 9)
-				punchAngle.z = 9;
+				else if (punchAngle.z > 9)
+					punchAngle.z = 9;
 
-			SetPunchAngle(punchAngle);
-			//CPASAttenuationFilter filter(this);
-			//EmitSound(filter, SOUND_FROM_LOCAL_PLAYER, "Flesh.Headshot");
-			//CPASAttenuationFilter filter(this);
-			//filter.UsePredictionRules();
-			//EmitSound(filter, entindex(), "Flesh.Headshot");
+				SetPunchAngle(punchAngle);
+			}
+
 			EmitSound("Flesh.Headshot");
 
 			m_isPlayerNearDying = true;
@@ -1671,11 +1678,11 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 
 		if (!m_bBuzzingSoundActive)
 		{
-			int effect = random->RandomInt(32, 34); // Efek suara dengung
+			int effect = random->RandomInt(32, 34);
 			CSingleUserRecipientFilter user(this);
 			enginesound->SetPlayerDSP(user, effect, false);
-			m_bBuzzingSoundActive = true;
 			m_flBuzzingSoundEndTime = gpGlobals->curtime + 5.0f;
+			m_bBuzzingSoundActive = true;
 		}
 	}
 
@@ -1695,19 +1702,23 @@ void CBasePlayer::HandleFastRegen()
 	{
 		if (gpGlobals->curtime >= m_flNextFastRegenTime)
 		{
-
-
-			// Tambahkan darah secara bertahap
-			TakeHealth(5, DMG_GENERIC); // Tambahkan 5 darah setiap kali
-			m_flNextFastRegenTime = gpGlobals->curtime + 0.1f; // Atur waktu regenerasi berikutnya
+			// Add 5 health each time
+			TakeHealth(5, DMG_GENERIC); 
+			// Set the next regeneration time for 0.1 seconds
+			m_flNextFastRegenTime = gpGlobals->curtime + 0.1f; 
 			m_isPlayerNearDying = false;
-			// Hentikan regenerasi cepat jika darah sudah mencapai 100
+			// Stop the regeneration if the health reaches 100
 			if (GetHealth() >= 100)
 			{
 				m_bFastRegenActive = false;
 			}
+			
 			if (m_bBuzzingSoundActive && gpGlobals->curtime >= m_flBuzzingSoundEndTime)
 			{
+				// HUGAMOD: Delays the relief breathing sound 
+				// for 0.45 - 0.5 seconds because it will collide with
+				// the hurt breathing sound
+				m_flStartReliefSoundTime = gpGlobals->curtime + RandomFloat(0.45, 0.5);
 				m_bBuzzingSoundActive = false;
 			}
 		}
@@ -4998,33 +5009,33 @@ void CBasePlayer::PostThink()
 	SimulatePlayerSimulatedEntities();
 #endif
 
-	// HUGAMOD: Call of Duty style low health regeneration
-	// Regenerate heath
-	/*if (IsAlive() && GetHealth() < 25 && (sv_regeneration.GetInt() == 1))
-	{
-		// Color to overlay on the screen while the player is taking damage
-		//color32 hurtScreenOverlay = { 80,0,0,64 };
-		color32 red = { 128,0,0,128 };
-		//UTIL_ScreenFade(this, red, 1.0f, 0.1f, FFADE_IN)
-
-
-		if (gpGlobals->curtime > m_flLastDamageTime + sv_regeneration_wait_time.GetFloat())
+	// HUGAMOD: Dead player will ignore this
+	if (IsAlive()) {
+		if (GetHealth() < 25)
 		{
-			//Regenerate based on rate, and scale it by the frametime
-			m_fRegenRemander += sv_regeneration_rate.GetFloat()  * gpGlobals->frametime;
-
-			if (m_fRegenRemander >= 1)
+			if (gpGlobals->curtime >= m_flNextLowHealthSoundTime)
 			{
-				TakeHealth(5, DMG_GENERIC);
-				m_fRegenRemander = 0;
+				// Play hurt breath sound
+				EmitSound("Player.Breathhurt");
+
+				// Set the next hurt breath sound time
+				m_flNextLowHealthSoundTime = gpGlobals->curtime + 1.0f; // Interval 1 detik
 			}
 		}
 		else
 		{
-			UTIL_ScreenFade(this, red, 1.0f, 0.1f, FFADE_IN | FFADE_PURGE);
-		}
-	}*/
+			if (m_flStartReliefSoundTime > 0.0f && gpGlobals->curtime >= m_flStartReliefSoundTime)
+			{
+				EmitSound("Player.Breathbetter");
 
+				// Reset relief breath time to prevent looping
+				m_flStartReliefSoundTime = 0.0f;
+			}
+			StopSound("Player.Breathhurt"); // Stop breath hurt sound
+			// Reset breath hurt time to prevent looping
+			m_flNextLowHealthSoundTime = 0.0f;
+		}
+	}
 	HandleFastRegen();
 	
 }
@@ -10481,6 +10492,7 @@ void CBasePlayer::Event_KilledOther( CBaseEntity *pVictim, const CTakeDamageInfo
 	BaseClass::Event_KilledOther( pVictim, info );
 	if ( pVictim != this )
 	{
+		EmitSound("Hit.Deathmarker");
 		gamestats->Event_PlayerKilledOther( this, pVictim, info );
 	}
 	else

@@ -61,20 +61,26 @@ config.cfg
 *.filters
 *.vpc_crc
 *.sentinel
-
+*.tga
+*.sav
 # Backup files
 *.bak
 
 # Build folders
 sp/src/.vs/
+sp/game/hugamod/projectsrc/critical health warning (taken from mw2cr)
 sp/src/game/client/Debug_mod_episodic/
 sp/src/game/client/Debug_mod_hl2/
 sp/src/game/client/Release_mod_episodic/
 sp/src/game/client/Release_mod_hl2/
+sp/src/game/client/Release_hugamod/*
+sp/src/game/client/Debug_hugamod/*
 sp/src/game/server/Debug_mod_episodic/
 sp/src/game/server/Debug_mod_hl2/
 sp/src/game/server/Release_mod_episodic/
 sp/src/game/server/Release_mod_hl2/
+sp/src/game/server/Release_hugamod/*
+sp/src/game/server/Debug_hugamod/*
 sp/src/*/Debug/
 sp/src/*/Release/
 sp/game/*.dll
@@ -94,4 +100,3 @@ sp/src/devtools/gcc9+support.o
 
 *.cache
 
-!hugamod_2025_2.sln

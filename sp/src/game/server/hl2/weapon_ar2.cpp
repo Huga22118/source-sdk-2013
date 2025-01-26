@@ -225,6 +225,50 @@ void CWeaponAR2::Precache( void )
 	UTIL_PrecacheOther( "env_entity_dissolver" );
 }
 
+void CWeaponAR2::DrawHitmarker()
+{
+	CBasePlayer* pPlayer = ToBasePlayer(GetOwner());
+	trace_t tr;
+	if (pPlayer)
+	{
+
+#ifndef CLIENT_DLL
+		CSingleUserRecipientFilter filter(pPlayer);
+		UserMessageBegin(filter, "ShowHitmarker");
+		WRITE_BYTE(1);
+		MessageEnd();
+#endif
+	}
+}
+
+void CWeaponAR2::PrimaryAttack(void)
+{
+	CBasePlayer* pOwner = ToBasePlayer(GetOwner());
+	if (pOwner)
+	{
+		trace_t tr;
+		Vector vecStart, vecStop, vecDir;
+
+		// Get the angles
+		AngleVectors(pOwner->EyeAngles(), &vecDir);
+
+		// Get the vectors
+		vecStart = pOwner->Weapon_ShootPosition();
+		vecStop = vecStart + vecDir * MAX_TRACE_LENGTH;
+		// Do the TraceLine
+		UTIL_TraceLine(vecStart, vecStop, MASK_ALL, pOwner, COLLISION_GROUP_NONE, &tr);
+
+		if (tr.m_pEnt->IsNPC()) {
+			EmitSound("Hit.Hitmarker");
+			DrawHitmarker();
+		}
+		else {
+			StopSound("Hit.Hitmarker");
+		}
+	}
+	BaseClass::PrimaryAttack();
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: Handle grenade detonate in-air (even when no ammo is left)
 //-----------------------------------------------------------------------------

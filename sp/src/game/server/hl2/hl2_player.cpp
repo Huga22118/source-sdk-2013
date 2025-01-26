@@ -698,6 +698,9 @@ void CHL2_Player::Precache( void )
 	PrecacheScriptSound( "HL2Player.BurnPain" );
 	PrecacheScriptSound("Flesh.BulletImpact");
 	PrecacheScriptSound("Hit.Hitmarker");
+	PrecacheScriptSound("Hit.Deathmarker");
+	PrecacheScriptSound("Player.Breathhurt");
+	PrecacheScriptSound("Player.Breathbetter");
 	PrecacheScriptSound("Flesh.SuitDamage");
 	//PrecacheScriptSound("Flesh.Headshot");
 	PrecacheScriptSound("Flesh.Helmet");

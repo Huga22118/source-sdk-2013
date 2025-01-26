@@ -1229,7 +1229,7 @@
 
 "Flesh.BulletImpact"
 {
-	"channel"	"CHAN_ITEM"
+	"channel"	"CHAN_STATIC"
 	"soundlevel"		"SNDLVL_75dB"
 	"volume"		"SNDLVL_NORM"
 	"pitch"			"PITCH_NORM"

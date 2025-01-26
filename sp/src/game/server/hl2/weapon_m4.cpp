@@ -30,20 +30,20 @@ extern ConVar sk_plr_dmg_smg1_grenade;
 
 
 IMPLEMENT_SERVERCLASS_ST(CWeaponM4, DT_WeaponM4)
-SendPropVector(SENDINFO_NAME(m_targetPosition, m_targetPosition), -1, SPROP_COORD),
+/*SendPropVector(SENDINFO_NAME(m_targetPosition, m_targetPosition), -1, SPROP_COORD),
 SendPropVector(SENDINFO_NAME(m_worldPosition, m_worldPosition), -1, SPROP_COORD),
 SendPropInt(SENDINFO(m_active), 1, SPROP_UNSIGNED),
-SendPropModelIndex(SENDINFO(m_viewmodelIndex)),
+SendPropModelIndex(SENDINFO(m_viewmodelIndex)),*/
 END_SEND_TABLE()
 
 LINK_ENTITY_TO_CLASS(weapon_m4, CWeaponM4);
 PRECACHE_WEAPON_REGISTER(weapon_m4);
 
 BEGIN_DATADESC(CWeaponM4)
-DEFINE_FIELD(m_active, FIELD_INTEGER),
+/*DEFINE_FIELD(m_active, FIELD_INTEGER),
 DEFINE_FIELD(m_viewmodelIndex, FIELD_INTEGER),
 DEFINE_FIELD(m_targetPosition, FIELD_POSITION_VECTOR),
-DEFINE_FIELD(m_worldPosition, FIELD_POSITION_VECTOR),
+DEFINE_FIELD(m_worldPosition, FIELD_POSITION_VECTOR),*/
 DEFINE_FIELD(m_bInitialStateUpdate, FIELD_BOOLEAN),
 END_DATADESC()
 
@@ -138,7 +138,7 @@ void CWeaponM4::ItemPostFrame(void) {
 
 	if (pPlayer == NULL)
 		return;
-	if ((m_bInitialStateUpdate) && (GetActivity() != ACT_VM_DRAW))
+	/*if ((m_bInitialStateUpdate) && (GetActivity() != ACT_VM_DRAW))
 	{
 
 	}
@@ -147,10 +147,10 @@ void CWeaponM4::ItemPostFrame(void) {
 	}
 	else {
 		DrawBeam();
-	}
+	}*/
 }
 
-void CWeaponM4::DrawBeam()
+/*void CWeaponM4::DrawBeam()
 {
 	m_active = true;
 	Vector start, angles, right, up, forward;
@@ -179,7 +179,7 @@ void CWeaponM4::DrawBeam()
 	if (tr.DidHitWorld()) {
 
 	}
-}
+}*/
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -269,12 +269,16 @@ void CWeaponM4::Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCombatCharact
 void CWeaponM4::DrawHitmarker()
 {
 	CBasePlayer* pPlayer = ToBasePlayer(GetOwner());
+	trace_t tr;
 	if (pPlayer)
 	{
-		CSingleUserRecipientFilter user(pPlayer);
-		user.MakeReliable();
-		UserMessageBegin(user, "ShowHitmarker");
-		MessageEnd();
+		
+#ifndef CLIENT_DLL
+				CSingleUserRecipientFilter filter(pPlayer);
+				UserMessageBegin(filter, "ShowHitmarker");
+				WRITE_BYTE(1);
+				MessageEnd();
+#endif
 	}
 }
 
@@ -291,30 +295,18 @@ void CWeaponM4::PrimaryAttack(void) {
 		// Get the vectors
 		vecStart = pOwner->Weapon_ShootPosition();
 		vecStop = vecStart + vecDir * MAX_TRACE_LENGTH;
-
 		// Do the TraceLine
 		UTIL_TraceLine(vecStart, vecStop, MASK_ALL, pOwner, COLLISION_GROUP_NONE, &tr);
 
-		// Check to see if we hit a player
-		// Check to see if we hit an NPC
-		if (tr.m_pEnt)
-		{
-			if (tr.m_pEnt->IsNPC())
-			{
-				//CAI_BaseNPC* pNPC = dynamic_cast<CAI_BaseNPC*>(tr.m_pEnt);
-
-				//if (pNPC)
-				//{
-					//if (!pNPC->IsAlive())
-					//{
-						// NPC is dead
-				DrawHitmarker();
+		
+			if (tr.m_pEnt->IsNPC()) {
 				EmitSound("Hit.Hitmarker");
-				//UTIL_LogPrintf("Testt");
-			//}
-		//}
+				DrawHitmarker();
 			}
-		}
+			else {
+				StopSound("Hit.Hitmarker");
+			}
+		
 	}
 
 	BaseClass::PrimaryAttack();

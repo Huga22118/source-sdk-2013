@@ -457,6 +457,9 @@ void PlayImpactSound( CBaseEntity *pEntity, trace_t &tr, Vector &vecServerOrigin
 	surfacedata_t *pdata;
 	Vector vecOrigin;
 
+	if (pEntity->IsDormant())
+		return;
+
 	// If the client-side trace hit a different entity than the server, or
 	// the server didn't specify a surfaceprop, then use the client-side trace 
 	// material if it's valid.
@@ -489,13 +492,15 @@ void PlayImpactSound( CBaseEntity *pEntity, trace_t &tr, Vector &vecServerOrigin
 			C_BaseEntity::EmitSound( filter, NULL, pbulletImpactSoundName, pdata->soundhandles.bulletImpact, &vecOrigin );
 		}
 
-/*#ifdef MAPBASE
+#ifdef MAPBASE
 		// play a ricochet based on the material
 		float flRicoChance = 0.0f;
 		switch (pdata->game.material)
 		{
 		case CHAR_TEX_METAL:
 		case CHAR_TEX_CONCRETE:
+			flRicoChance = 5.0;
+			break;
 		case CHAR_TEX_COMPUTER:
 		case CHAR_TEX_TILE:
 			flRicoChance = 5.0;
@@ -517,7 +522,9 @@ void PlayImpactSound( CBaseEntity *pEntity, trace_t &tr, Vector &vecServerOrigin
 		{
 			FX_RicochetSound(vecOrigin);
 		}
-#endif*/
+		//code taken from latest available csso source code
+		//since it became closed source due to the fucked up things
+#endif 
 		return;
 	}
 

@@ -21,10 +21,10 @@ public:
 
 	DECLARE_SERVERCLASS();
 
-	virtual bool Holster(CHLMachineGun* pSwitchingTo) {
+	/*virtual bool Holster(CHLMachineGun* pSwitchingTo) {
 		m_active = false;
 		return BaseClass::Holster(pSwitchingTo);
-	}
+	}*/
 	void   	DrawBeam();
 	void			Precache();
 	//void			AddViewKick();
@@ -99,10 +99,10 @@ public:
 	void Operator_HandleAnimEvent(animevent_t* pEvent, CBaseCombatCharacter* pOperator);
 
 protected:
-	CNetworkVector(m_targetPosition);
+	/*CNetworkVector(m_targetPosition);
 	CNetworkVector(m_worldPosition);
 	CNetworkVar(int, m_active);
-	CNetworkVar(int, m_viewmodelIndex);
+	CNetworkVar(int, m_viewmodelIndex);*/
 	bool				m_bInitialStateUpdate;
 	//CHandle<CLaserDot>	m_hLaserDot;
 	//CHandle<CSprite>	m_hLaserMuzzleSprite;

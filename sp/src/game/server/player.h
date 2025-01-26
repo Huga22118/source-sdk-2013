@@ -18,7 +18,6 @@
 #include "hintsystem.h"
 #include "SoundEmitterSystem/isoundemittersystembase.h"
 #include "util_shared.h"
-
 #if defined USES_ECON_ITEMS
 #include "game_item_schema.h"
 #include "econ_item_view.h"
@@ -874,6 +873,8 @@ public:
 	bool m_isPlayerNearDying = false;
 	bool m_bBuzzingSoundActive = false;
 	float m_flBuzzingSoundEndTime;
+	float m_flNextLowHealthSoundTime;
+	float m_flStartReliefSoundTime;
 	protected:
 		float m_applyDeafnessTime;
 		int m_currentDeafnessFilter;

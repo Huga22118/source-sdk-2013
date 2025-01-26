@@ -28,7 +28,8 @@ public:
 
 	void	ItemPostFrame( void );
 	void	Precache( void );
-	
+	void    DrawHitmarker();
+	void    PrimaryAttack(void);
 	void	SecondaryAttack( void );
 	void	DelayedAttack( void );
 
