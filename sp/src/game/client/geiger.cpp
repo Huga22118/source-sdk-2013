@@ -58,7 +58,7 @@ CHudGeiger::CHudGeiger( const char *pElementName ) :
 	SetParent( pParent );
 	m_flLastSoundTestTime = -9999;
 
-	SetHiddenBits( HIDEHUD_HEALTH );
+	//SetHiddenBits( HIDEHUD_HEALTH );
 }
 
 void CHudGeiger::ApplySchemeSettings( IScheme *scheme )

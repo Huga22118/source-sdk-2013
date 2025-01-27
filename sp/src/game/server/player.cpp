@@ -753,6 +753,9 @@ CBasePlayer::CBasePlayer( )
 	// Setup our default FOV
 	m_iDefaultFOV = g_pGameRules->DefaultFOV();
 
+	//test
+	m_Local.m_iHideHUD = HIDEHUD_HEALTH;
+
 	m_hZoomOwner = NULL;
 
 	m_nUpdateRate = 20;  // cl_updaterate defualt

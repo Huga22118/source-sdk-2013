@@ -74,8 +74,10 @@ CHudHealth::CHudHealth( const char *pElementName ) : CHudElement( pElementName )
 //-----------------------------------------------------------------------------
 void CHudHealth::Init()
 {
+#ifdef DEBUG
 	HOOK_HUD_MESSAGE( CHudHealth, Damage );
 	Reset();
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -83,6 +85,7 @@ void CHudHealth::Init()
 //-----------------------------------------------------------------------------
 void CHudHealth::Reset()
 {
+#ifdef DEBUG
 	m_iHealth		= INIT_HEALTH;
 	m_bitsDamage	= 0;
 
@@ -97,6 +100,7 @@ void CHudHealth::Reset()
 		SetLabelText(L"HEALTH");
 	}
 	SetDisplayValue(m_iHealth);
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -112,6 +116,7 @@ void CHudHealth::VidInit()
 //-----------------------------------------------------------------------------
 void CHudHealth::OnThink()
 {
+#ifdef DEBUG
 	int newHealth = 0;
 	C_BasePlayer *local = C_BasePlayer::GetLocalPlayer();
 	if ( local )
@@ -139,6 +144,7 @@ void CHudHealth::OnThink()
 	}
 
 	SetDisplayValue(m_iHealth);
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -146,7 +152,7 @@ void CHudHealth::OnThink()
 //-----------------------------------------------------------------------------
 void CHudHealth::MsgFunc_Damage( bf_read &msg )
 {
-
+#ifdef DEBUG
 	int armor = msg.ReadByte();	// armor
 	int damageTaken = msg.ReadByte();	// health
 	long bitsDamage = msg.ReadLong(); // damage bits
@@ -167,4 +173,5 @@ void CHudHealth::MsgFunc_Damage( bf_read &msg )
 			g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("HealthDamageTaken");
 		}
 	}
+#endif
 }

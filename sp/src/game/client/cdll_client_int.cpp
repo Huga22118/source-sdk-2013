@@ -1687,7 +1687,14 @@ void CHLClient::LevelInitPreEntity( char const* pMapName )
 #ifdef MAPBASE_RPC
 	if (!g_bTextMode)
 	{
-		MapbaseRPC_Update(RPCSTATE_LEVEL_INIT, pMapName);
+		if (engine->IsPaused())
+		{
+			MapbaseRPC_Update(RPCSTATE_IS_GAME_PAUSED, pMapName);
+		}
+		else
+		{
+			MapbaseRPC_Update(RPCSTATE_LEVEL_INIT, pMapName);
+		}
 	}
 #endif
 

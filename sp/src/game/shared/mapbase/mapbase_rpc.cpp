@@ -315,7 +315,8 @@ void MapbaseRPC_Init()
 
 	// First, load the config
 	// (we need its values immediately)
-	KeyValues *pKV = new KeyValues( "MapbaseRPC" );
+	//KeyValues *pKV = new KeyValues( "MapbaseRPC" );
+	KeyValues* pKV = new KeyValues("GameRPC");
 	if (pKV->LoadFromFile( filesystem, "scripts/mapbase_rpc.txt" ))
 	{
 		const char *szAppID = pKV->GetString("discord_appid", cl_discord_appid.GetString());
@@ -430,6 +431,8 @@ void MapbaseRPC_UpdateSteam( int iType, const char *pMapName )
 				{
 					pszStatus = "Main Menu";
 				} break;
+			case RPCSTATE_IS_GAME_PAUSED:
+				break;
 			case RPCSTATE_LEVEL_INIT:
 			default:
 				{
@@ -538,7 +541,14 @@ void MapbaseRPC_GetDiscordParameters( DiscordRichPresence &discordPresence, int 
 	}
 	else
 	{
-		Q_strncpy( state, g_iszGameName, sizeof(state) );
+		if (engine->IsPaused())
+		{ 
+			Q_strncpy(state, "Game Paused", sizeof(state));
+		}
+		else{
+			Q_strncpy(state, g_iszGameName, sizeof(state));
+		}
+		
 
 		switch (iType)
 		{
@@ -547,6 +557,9 @@ void MapbaseRPC_GetDiscordParameters( DiscordRichPresence &discordPresence, int 
 				{
 					Q_strncpy( details, "Main Menu", sizeof(details) );
 				} break;
+			case RPCSTATE_IS_GAME_PAUSED:
+				Q_strncpy(details, "Game Paused", sizeof(details));
+				break;
 			case RPCSTATE_LEVEL_INIT:
 			default:
 				{
@@ -567,7 +580,8 @@ void MapbaseRPC_GetDiscordParameters( DiscordRichPresence &discordPresence, int 
 
 	// Generic Mapbase logo. Specific to the Mapbase Discord application.
 	discordPresence.smallImageKey = "mb_logo_general";
-	discordPresence.smallImageText = "Mapbase";
+	//discordPresence.smallImageText = "Mapbase";
+	discordPresence.smallImageText = g_iszGameName;
 
 	discordPresence.largeImageKey = cl_discord_largeimage.GetString();
 	discordPresence.largeImageText = cl_discord_largeimage_text.GetString();
